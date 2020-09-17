@@ -65,6 +65,7 @@ dependencies:
   - mkl-service=2.3.0=py37hb782905_0
   - mkl_fft=1.0.15=py37h14836fe_0
   - mkl_random=1.1.0=py37h675688f_0
+  - mpmath=1.1.0=py37_0
   - nbconvert=5.6.1=py37_1
   - nbformat=5.0.7=py_0
   - numpy=1.18.1=py37h93ca92e_0
@@ -129,6 +130,7 @@ dependencies:
   - spyder=4.1.5=py37_0
   - spyder-kernels=1.9.4=py37_0
   - sqlite=3.31.1=he774522_0
+  - sympy=1.6.2=py37_0
   - testpath=0.4.4=py_0
   - tk=8.6.10=he774522_0
   - toml=0.10.1=py_0
@@ -154,5 +156,6 @@ dependencies:
   - zlib=1.2.11=h62dcd97_4
   - zstd=1.4.5=h04227a9_0
   - pip:
-    - coolprop==6.3.0
+    - bezier==2020.5.19
+    - coolprop==6.4.1
 prefix: C:\Users\Berni\anaconda3\envs\engine
