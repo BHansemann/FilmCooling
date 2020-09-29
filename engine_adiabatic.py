@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import math
 from rocketcea.cea_obj import CEA_Obj
 import scipy.constants as const
+import thermodynamic_toolbox as thermo
 
 psi = lambda x : x / const.psi
 Pa = lambda x : x * const.psi
@@ -27,11 +28,6 @@ def convert_to_CP_string(cea_dict, cutoff=0.01, exclude=["*NO", "*O", "*OH"], po
         cp_string += "{}[{}]&".format(key, cp_dict[key]/total)
     return cp_string.strip("&")
 
-def molar_mixer(mix_cc):
-    
-def mass_mixer():
-    
-
 def engine_adiabatic(P_cc, P_e, n_ps, T_cc, F_th, eta_nz, ox, fuel, ofr):
     step, P, T, rho, kappa, h, u, c, M, r = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     cea = CEA_Obj(fuelName=fuel, oxName=ox)
@@ -42,7 +38,7 @@ def engine_adiabatic(P_cc, P_e, n_ps, T_cc, F_th, eta_nz, ox, fuel, ofr):
     mix_cc = cea.get_SpeciesMoleFractions(Pc=psi(P_cc), MR=ofr)[1]
     
     for i in eng[step, :]:
-        
+        pass
     #print(cea.get_Temperatures(Pc=psi(P_cc), MR=ofr))
     
 if __name__ == "__main__":
