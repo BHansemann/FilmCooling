@@ -2,7 +2,7 @@
 """
 Created on Sun Sep 20 16:46:00 2020
 
-@author: Berni
+@author: Bernhard
 """
 
 import CoolProp.CoolProp as CP
