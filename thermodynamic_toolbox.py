@@ -27,6 +27,19 @@ def isentrop_vol_temp(kappa, vol, temp1, temp2):
 def isentrop_vol_press(kappa, vol, press1, press2):
     return vol * (press1 / press2)**(1 / kappa)
 
+def mix_to_CP_string(mix: dict):
+    out = ""
+    for key in mix:
+        out += "{}[{}]&".format(key, mix[key])
+    return out.strip("&")
+
+def mass_frac(mix: dict):
+    massmix = {}
+    molarmass_mix = CP.PropsSI('M', mix_to_CP_string(mix))
+    for key in mix:
+        massmix[key] = mix[key] * CP.PropsSI('M', key) / molarmass_mix
+    return massmix
+
 def molar_mixer(mix: dict, input1, type1, input2, type2, output):
     val = 0
     for key in mix:
@@ -35,5 +48,7 @@ def molar_mixer(mix: dict, input1, type1, input2, type2, output):
 
 def mass_mixer(mix: dict, input1, type1, input2, type2, output):
     val=0
-    massmix = {}
-    
+    massmix = mass_frac(mix)
+    for key in massmix:
+        val += massmix[key] * CP.PropsSI(output, type1, input1, type2, input2)
+    return val
