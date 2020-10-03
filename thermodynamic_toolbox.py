@@ -43,12 +43,21 @@ def mass_frac(mix: dict):
 def molar_mixer(mix: dict, input1, type1, input2, type2, output):
     val = 0
     for key in mix:
-        val += mix[key] * CP.PropsSI(output, type1, input1, type2, input2)
+        val += mix[key] * CP.PropsSI(output, type1, input1, type2, input2, key)
     return val
 
 def mass_mixer(mix: dict, input1, type1, input2, type2, output):
     val=0
     massmix = mass_frac(mix)
     for key in massmix:
-        val += massmix[key] * CP.PropsSI(output, type1, input1, type2, input2)
+        val += massmix[key] * CP.PropsSI(output, type1, input1, type2, input2, key)
     return val
+
+def get_kappa(P, T, mix: dict):
+    return molar_mixer(mix, P, 'P', T, 'T', "CPMOLAR") / molar_mixer(mix, P, 'P', T, 'T', "CVMOLAR")
+
+def get_rho(P, T, mix: dict):
+    return P / (T * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)))
+
+def get_speed_of_sound(P, T, mix: dict):
+    return (get_kappa(P, T, mix) * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) * T)**0.5
