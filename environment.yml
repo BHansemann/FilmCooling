@@ -1,5 +1,6 @@
 name: engine
 channels:
+  - spyder-ide
   - msys2
   - defaults
 dependencies:
@@ -37,6 +38,7 @@ dependencies:
   - imagesize=1.2.0=py_0
   - importlib-metadata=1.7.0=py37_0
   - importlib_metadata=1.7.0=0
+  - iniconfig=1.0.1=py_0
   - intel-openmp=2020.0=166
   - intervaltree=3.1.0=py_0
   - ipykernel=5.3.4=py37h5ca1d4c_0
@@ -52,11 +54,15 @@ dependencies:
   - keyring=21.4.0=py37_0
   - kiwisolver=1.2.0=py37h74a9793_0
   - lazy-object-proxy=1.4.3=py37he774522_0
+  - libiconv=1.15=h1df5818_7
   - libpng=1.6.37=h2a8f88b_0
   - libpython=2.1=py37_0
   - libsodium=1.0.18=h62dcd97_0
   - libspatialindex=1.9.3=h33f27b4_0
   - libtiff=4.1.0=h56a325e_1
+  - libxml2=2.9.10=h464c3ec_1
+  - libxslt=1.1.34=he774522_0
+  - lxml=4.5.2=py37h1350720_0
   - lz4-c=1.9.2=h62dcd97_1
   - m2w64-binutils=2.25.1=5
   - m2w64-bzip2=1.0.6=6
@@ -92,6 +98,7 @@ dependencies:
   - mkl-service=2.3.0=py37hb782905_0
   - mkl_fft=1.0.15=py37h14836fe_0
   - mkl_random=1.1.0=py37h675688f_0
+  - more-itertools=8.5.0=py_0
   - mpmath=1.1.0=py37_0
   - msys2-conda-epoch=20160418=1
   - nbconvert=5.6.1=py37_1
@@ -102,6 +109,7 @@ dependencies:
   - olefile=0.46=py37_0
   - openssl=1.1.1h=he774522_0
   - packaging=20.4=py_0
+  - pandas=1.1.3=py37ha925a31_0
   - pandoc=2.10.1=0
   - pandocfilters=1.4.2=py37_1
   - paramiko=2.7.2=py_0
@@ -113,6 +121,7 @@ dependencies:
   - pluggy=0.13.1=py37_0
   - prompt-toolkit=3.0.7=py_0
   - psutil=5.7.2=py37he774522_0
+  - py=1.9.0=py_0
   - pycodestyle=2.6.0=py_0
   - pycparser=2.20=py_2
   - pydocstyle=5.1.1=py_0
@@ -125,6 +134,7 @@ dependencies:
   - pyqt=5.9.2=py37h6538335_2
   - pyrsistent=0.16.0=py37he774522_0
   - pysocks=1.7.1=py37_1
+  - pytest=6.1.1=py37_0
   - python=3.7.7=h60c2a47_0_cpython
   - python-dateutil=2.8.1=py_0
   - python-jsonrpc-server=0.3.4=py_1
@@ -156,12 +166,14 @@ dependencies:
   - sphinxcontrib-serializinghtml=1.1.4=py_0
   - spyder=4.1.5=py37_0
   - spyder-kernels=1.9.4=py37_0
+  - spyder-unittest=0.4.1=py_0
   - sqlite=3.31.1=he774522_0
   - sympy=1.6.2=py37_0
   - testpath=0.4.4=py_0
   - tk=8.6.10=he774522_0
   - toml=0.10.1=py_0
   - tornado=6.0.4=py37he774522_1
+  - tqdm=4.50.2=py_0
   - traitlets=4.3.3=py37_0
   - typed-ast=1.4.1=py37he774522_0
   - ujson=1.35=py37hfa6e2cd_0
@@ -186,4 +198,6 @@ dependencies:
     - bezier==2020.5.19
     - coolprop==6.4.1
     - pip==20.2.3
-prefix: C:\Users\Berni\anaconda3\envs\engine
+    - rocketcea==1.1.18
+    - scipy==1.5.2
+prefix: C:\Users\Bernhard\anaconda3\envs\engine
