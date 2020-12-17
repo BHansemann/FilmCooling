@@ -57,7 +57,7 @@ def get_kappa(P, T, mix: dict) -> float:
     return molar_mixer(mix, P, 'P', T, 'T', "CPMOLAR") / molar_mixer(mix, P, 'P', T, 'T', "CVMOLAR")
 
 def get_rho(P, T, mix: dict) -> float:
-    return P / (T * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)))
+    return P / (T * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) / CP.PropsSI("M", mix_to_CP_string(mix)))
 
 def get_speed_of_sound(P, T, mix: dict) -> float:
-    return (get_kappa(P, T, mix) * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) * T)**0.5
+    return (get_kappa(P, T, mix) * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) * T / CP.PropsSI("M", mix_to_CP_string(mix)))**0.5

@@ -70,8 +70,9 @@ if __name__ == "__main__":
     step, P, T, rho, kappa, h, u, c, M, r = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     sample_engine = engine_adiabatic(1000000, 100000, 1000, 0, 500, 0, "N2O", "C2H5OH", 2.5, 0.02)
     fig = plt.figure()
-    ax1 = fig.add_subplot(221)
-    ax2 = fig.add_subplot(212)
+    #ax1 = fig.add_subplot(222)
+    #ax2 = fig.add_subplot(212)
+    fig, (ax1, ax2) = plt.subplots(2)
     ax1.plot(sample_engine[step,:], sample_engine[M,:])
     ax2.plot(sample_engine[step,:], sample_engine[r,:])
     plt.show()
