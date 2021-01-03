@@ -59,11 +59,11 @@ for i in nozzle[0,i_t:]:
     nozzle[4,i] = sample_engine[M,dp]
 
 fig, (ax1, ax2) = plt.subplots(2, sharex=True)
-ax1.plot(nozzle[1,:], nozzle[2,:], linewidth=0.5)
-ax2.plot(nozzle[1,:], nozzle[3,:], linewidth=0.5)
+ax1.plot(nozzle[1,:], nozzle[2,:], linewidth=1)
+ax2.plot(nozzle[1,:], nozzle[3,:], linewidth=1)
 ax1.axis("equal")
 plt.title(datetime.now())
-ax1.vlines(l_t, 0, 0.02, linewidth=0.1)
-ax1.hlines(throat, 0, 0.04, linewidth=0.1)
+#ax1.vlines(l_t, 0, 0.02, linewidth=0.1)
+#ax1.hlines(throat, 0, 0.04, linewidth=0.1)
 #plt.savefig("graph.svg")
 plt.show()

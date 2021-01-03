@@ -64,6 +64,7 @@ def engine_adiabatic(P_cc, P_e, n_ps, T_cc, F_th, eta_nz, ox, fuel, ofr, r_cc):
             eng[u,i] = ((eng[h,i-1] - eng[h,i]) * 2 + eng[u,i-1]**2)**0.5
             eng[M,i] = eng[u,i] / eng[c,i]
     eng[r,:] = np.vectorize(lambda u, rho: (m_dot / (math.pi * u * rho))**0.5)(eng[u,:], eng[rho,:])
+    print(m_dot)
     return eng
     
 if __name__ == "__main__":
