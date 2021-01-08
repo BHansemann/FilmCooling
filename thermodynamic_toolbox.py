@@ -7,7 +7,9 @@ Created on Tue Sep 29 12:45:02 2020
 
 import math
 import scipy.constants as const
+from scipy.optimize import fsolve
 import CoolProp.CoolProp as CP
+import numpy as np
 
 def isentrop_press_temp(kappa, press, temp1, temp2) -> float:
     return press * (temp2 / temp1)**(kappa / (kappa - 1))
@@ -61,3 +63,21 @@ def get_rho(P, T, mix: dict) -> float:
 
 def get_speed_of_sound(P, T, mix: dict) -> float:
     return (get_kappa(P, T, mix) * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) * T / CP.PropsSI("M", mix_to_CP_string(mix)))**0.5
+
+def get_friction_factor(Re) -> float:
+    def f(x):
+        z = 1.93 * math.log(Re * x**0.5, 10) - 0.537 - x**-0.5
+        return z
+    return fsolve(f, 10**-5)
+
+def get_reynolds_number():
+    pass
+
+def get_prandtl_number():
+    pass
+
+def get_stanton_number():
+    pass
+
+def get_heat_transfer_coefficient():
+    pass
