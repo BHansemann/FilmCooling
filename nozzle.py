@@ -21,3 +21,21 @@ class Nozzle:
     
     def __repr__(self):
         pass
+    
+    def generate(self):
+        pass
+    
+    def export_as(self, ex_type: str):
+        pass
+    
+    def export_csv(self):
+        pass
+    
+    def export_np(self):
+        pass
+    
+    def export_pandas(self):
+        pass
+    
+    def export_graph(self):
+        pass
