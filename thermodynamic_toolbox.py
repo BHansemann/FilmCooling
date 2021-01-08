@@ -70,11 +70,16 @@ def get_friction_factor(Re) -> float:
         return z
     return fsolve(f, 10**-5)
 
-def get_reynolds_number():
-    pass
+def get_reynolds_number(P, T, r, u, mix: dict) -> float:
+    rho = get_rho(P, T, mix)
+    visc = CP.PropsSI("VISCOSITY", "P", P, "T", T, mix_to_CP_string(mix))
+    return rho * u * 2*r / visc
 
-def get_prandtl_number():
-    pass
+def get_prandtl_number(P, T, mix: dict) -> float:
+    cp = mass_mixer(mix, P, "P", T, "T", "CP0MASS")
+    visc = CP.PropsSI("VISCOSITY", "P", P, "T", T, mix_to_CP_string(mix))
+    k = CP.PropsSI("CONDUCTIVITY", "P", P, "T", T, mix_to_CP_string(mix))
+    return cp * visc / k
 
 def get_stanton_number():
     pass
