@@ -1,0 +1,2 @@
+[1] B.J. Mckeon, M.V. Zagarola, A.J. Smits, A new friction factor relationship for fully developed flow, J. Fluid. Mech. 538 (2005) 429–443.
+[2] W.L. Friend, A.B. Metzner, Turbulent heat transfer inside tubes and the analogy among heat, mass and momentum transfer, AIChE J. 4 (1958) 393–402.

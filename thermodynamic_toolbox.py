@@ -9,7 +9,6 @@ import math
 import scipy.constants as const
 from scipy.optimize import fsolve
 import CoolProp.CoolProp as CP
-import numpy as np
 
 def isentrop_press_temp(kappa, press, temp1, temp2) -> float:
     return press * (temp2 / temp1)**(kappa / (kappa - 1))
@@ -64,7 +63,14 @@ def get_rho(P, T, mix: dict) -> float:
 def get_speed_of_sound(P, T, mix: dict) -> float:
     return (get_kappa(P, T, mix) * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) * T / CP.PropsSI("M", mix_to_CP_string(mix)))**0.5
 
-def get_friction_factor(Re) -> float:
+def get_cp(P, T, mix: dict):
+    return mass_mixer(mix, P, "P", T, "T", "CP0MASS")
+
+def get_friction_factor(Re) -> float: #acc to McKeon et al. [1]
+    if Re < 300E3:
+        pass #error handling
+    if Re >= 18E6:
+        pass #error handling
     def f(x):
         z = 1.93 * math.log(Re * x**0.5, 10) - 0.537 - x**-0.5
         return z
@@ -76,13 +82,19 @@ def get_reynolds_number(P, T, r, u, mix: dict) -> float:
     return rho * u * 2*r / visc
 
 def get_prandtl_number(P, T, mix: dict) -> float:
-    cp = mass_mixer(mix, P, "P", T, "T", "CP0MASS")
+    cp = get_cp(P, T, mix)
     visc = CP.PropsSI("VISCOSITY", "P", P, "T", T, mix_to_CP_string(mix))
     k = CP.PropsSI("CONDUCTIVITY", "P", P, "T", T, mix_to_CP_string(mix))
     return cp * visc / k
 
-def get_stanton_number():
-    pass
+def get_stanton_number(P, T, r, u, mix: dict): #acc to Friend and Metzner [2]
+    fff = get_friction_factor(get_reynolds_number(P, T, r, u, mix))
+    Pr = get_prandtl_number(P, T, mix)
+    return (fff/8)/(1.2 + 11.8 * (fff/8)**0.5 * (Pr - 1) * (Pr)**(-1/3))
 
-def get_heat_transfer_coefficient():
-    pass
+def get_heat_transfer_coefficient(P, T, r, u, mix: dict):
+    St = get_stanton_number(P, T, r, u, mix)
+    rho = get_rho(P, T, mix)
+    cp = get_cp(P, T, mix)
+    return St * u * rho * cp
+    
