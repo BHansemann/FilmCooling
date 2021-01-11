@@ -85,8 +85,6 @@ class Nozzle:
 
         '''
         
-        #ToDo: resolution vs steps, generate array
-        
         if self.chamber:
             if (self.chamber_type.casefold() == "cylindrical".casefold() or
                 self.chamber_type.casefold() == "c".casefold()):
@@ -114,6 +112,18 @@ class Nozzle:
         
         self.l = self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5 + self.__l6
         #todo: calculate all lengths
+        if self.steps == 0 and self.resolution == 0:
+            pass #error handling
+        elif self.steps == 0:
+            self.steps = int(self.resolution * self.l)
+            self.resolution = self.l / self.steps
+        elif self.resolution == 0:
+            self.resolution = self.l / self.steps
+        else:
+            self.resolution == self.l / self.steps
+        
+        self.data = np.array(np.zeros((self.steps + 1, 3)))
+        self.data[:,self.__step] = np.arange(0, self.steps + 1)
         
         x_0 = self.l - self.__l6
         y_0 = self.r_t * (1 + self.rf_div * (1 - math.cos(self.alpha_divt)))
@@ -475,7 +485,7 @@ class Nozzle:
     
     def set_resolution(self, resolution, unit="m"):
         '''
-        Sets the resolution of the contour generation.
+        Sets the resolution of the contour generation (steps per unit of length).
         Overwrites number of steps.
 
         Parameters
