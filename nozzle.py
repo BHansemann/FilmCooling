@@ -19,6 +19,14 @@ class Nozzle:
     __step, __cx, __cy = 0, 1, 2 #key for numpy array columns
     
     def __init__(self):
+        '''
+        Constructor. Declaration of Variables.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.r_c = 0 #chamber radius
         self.r_t = 0 #throat radius
         self.r_e = 0 #nozzle exit radius
@@ -67,6 +75,18 @@ class Nozzle:
         pass
     
     def generate(self):
+        '''
+        Updates the data. Should be called after new parameters have been set.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        '''
+        
+        #ToDo: resolution vs steps, generate array
+        
         if self.chamber:
             if (self.chamber_type.casefold() == "cylindrical".casefold() or
                 self.chamber_type.casefold() == "c".casefold()):
@@ -93,7 +113,7 @@ class Nozzle:
         __l6 = (self.r_t * (self.rf_div * (math.cos(math.radians(15))**-1 - 1) - 1) + self.r_e) * lf / math.tan(math.radians(15)) - __l5
         
         self.l = __l1 + __l2 + __l3 + __l4 + __l5 + __l6
-        #print(self.l, __l1, __l2, __l3, __l4, __l5, __l6)
+        #todo: calculate all lengths
         
         x_0 = self.l - __l6
         y_0 = self.r_t * (1 + self.rf_div * (1 - math.cos(self.alpha_divt)))
@@ -537,9 +557,6 @@ class Nozzle:
         '''
         return ""
     
-    def export_as(self, ex_type: str):
-        pass
-    
     def save_csv(self, name, separator=";", dec=","):
         '''
         Saves the data to disc as a .csv file.
@@ -594,6 +611,25 @@ class Nozzle:
         return pd.DataFrame({"Step": step, "x": self.data[:,self.__cx], "y": self.data[:,self.__cy]})
     
     def export_graph(self, name, fformat, date=True, title="Nozzle"):
+        '''
+        Exports the nozzle contour as a picture using matplotlib.
+
+        Parameters
+        ----------
+        name : String
+            Name or path of output file.
+        fformat : String
+            Desired output file type (e.g. "png", "svg", "pdf"...).
+        date : Boolean, optional
+            Sets if the current date and time should be added to the titel. The default is True.
+        title : String, optional
+            Title of the plot. The default is "Nozzle".
+
+        Returns
+        -------
+        None.
+
+        '''
         if date:
             from datetime import datetime
             now = datetime.now().strftime("%d/%m/%Y %H:&M:&S")
@@ -608,6 +644,14 @@ class Nozzle:
         plt.savefig(name, format=fformat)
     
     def draw_contour(self):
+        '''
+        Draws the Nozzle contour as a Matplotlib plot inline of the console.
+
+        Returns
+        -------
+        None.
+
+        '''
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
