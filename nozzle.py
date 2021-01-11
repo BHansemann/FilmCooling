@@ -63,6 +63,9 @@ class Nozzle:
     def __array__(self):
         pass
     
+    def set_values(self):
+        pass
+    
     def generate(self):
         if self.chamber:
             if (self.chamber_type.casefold() == "cylindrical".casefold() or
@@ -156,19 +159,460 @@ class Nozzle:
         
         self.generate()
         return self.data
+    
+    def set_r_c(self, r_c, unit="m"):
+        '''
+        Sets the radius of the combustion chamber.
+
+        Parameters
+        ----------
+        r_c : Float
+            Chamber radius.
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        None.
+
+        '''
+        factor = 1
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        self.r_c = r_c * factor
         
+    def set_r_t(self, r_t, unit="m"):
+        '''
+        Sets the radius of the throat.
+
+        Parameters
+        ----------
+        r_t : Float
+            Throat radius.
+        unit : String, optional
+            Unit of Length. The default is "m".
+
+        Returns
+        -------
+        None.
+
+        '''
+        factor = 1
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        self.r_t = r_t * factor
+        
+    def set_r_e(self, r_e, unit="m"):
+        '''
+        Sets exit radius of the nozzle.
+
+        Parameters
+        ----------
+        r_e : Float
+            Exit Radius.
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        None.
+
+        '''
+        factor = 1
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        self.r_e = r_e * factor
+        
+    def set_rf_cf(self, rf_cf):
+        '''
+        Sets the chamber-nozzle fillet radius as a fraction of the chamber radius.
+
+        Parameters
+        ----------
+        rf_cf : Float
+            Fraction of the chamber radius.
+
+        Returns
+        -------
+        None.
+        
+        '''
+        self.rf_cf = rf_cf
+        
+    def set_rf_con(self, rf_con):
+        '''
+        Sets the radius of the throat upstream as a fraction of the throat radius.
+        Recommendation for bell nozzle: 1.5
+        Recommendation for conical Nozzle: 0.5 - 1.5 
+
+        Parameters
+        ----------
+        rf_con : Float
+            Fraction of the throat radius.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.rf_con = rf_con
+        
+    def set_rf_div(self, rf_div):
+        '''
+        Sets the radius of the throat downstream as a fraction of the throat radius.
+        Recommendation for bell nozzle: 0.382
+        Recommendation for conical Nozzle: 0.5 - 1.5
+
+        Parameters
+        ----------
+        rf_div : Float
+            Fraction of the throat radius.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.rf_div = rf_div
+        
+    def set_l_c(self, l_c, unit="m"):
+        '''
+        Sets the length of the combustion chamber.
+
+        Parameters
+        ----------
+        l_c : Float
+            Length of combustion chamber.
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        None.
+
+        '''
+        factor = 1
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        self.l_c = l_c * factor
+        
+    def set_lf_n(self, lf_n):
+        '''
+        Sets the nozzle length as a fraction of a comparable 30° conical nozzle.
+        Only applicable to bell nozzles
+
+        Parameters
+        ----------
+        lf_n : Float
+            Fractional length.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.lf_n = lf_n
+        
+    def set_alpha_con(self, alpha_con, unit="degrees"):
+        '''
+        Sets the half-angle of the converging section.
+
+        Parameters
+        ----------
+        alpha_con : Float
+            Converging half-angle.
+        unit : String, optional
+            Unit of angle ("degrees" or "radians"). The default is "degrees".
+
+        Returns
+        -------
+        None.
+
+        '''
+        if unit.casefold() == "degrees":
+            self.alpha_con = math.radians(alpha_con)
+        elif unit.casefold() == "radians":
+            self.alpha_con = alpha_con
+            
+    def set_alpha_divt(self, alpha_divt, unit="degrees"):
+        '''
+        Sets the half-angle of the diverging section at the throat.
+
+        Parameters
+        ----------
+        alpha_divt : Float
+            Diverging half-angle at throat.
+        unit : String, optional
+            Unit of angle ("degrees" or "radians"). The default is "degrees".
+
+        Returns
+        -------
+        None.
+
+        '''
+        if unit.casefold() == "degrees":
+            self.alpha_divt = math.radians(alpha_divt)
+        elif unit.casefold() == "radians":
+            self.alpha_divt = alpha_divt
+            
+    def set_alpha_dive(self, alpha_dive, unit="degrees"):
+        '''
+        Sets the half-angle of the diverging section at the nozzle exit.
+
+        Parameters
+        ----------
+        alpha_dive : Float
+            Diverging half-angle at the exit.
+        unit : String, optional
+            Unit of angle ("degrees" or "radians"). The default is "degrees".
+
+        Returns
+        -------
+        None.
+
+        '''
+        if unit.casefold() == "degrees":
+            self.alpha_dive = math.radians(alpha_dive)
+        elif unit.casefold() == "radians":
+            self.alpha_dive = alpha_dive
+    
+    def set_epsilon(self, epsilon, fixed_throat = True):
+        '''
+        Sets the expansion area ratio of the nozzle.
+        Overwrites either exit radius or throat radius.
+
+        Parameters
+        ----------
+        epsilon : Float
+            Expansion area ratio.
+        fixed_throat : Boolean, optional
+            Throat radius is kept, exit radius is adjusted. The default is True.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.epsilon = epsilon
+        if fixed_throat:
+            self.r_e = (epsilon * self.r_t **2)**0.5
+        else:
+            self.r_t = (self.r_e**2 / epsilon)**0.5
+        
+    def set_steps(self, steps):
+        '''
+        Sets the number of discrete calculation steps/sections.
+        Overwrites resolution
+
+        Parameters
+        ----------
+        steps : Integer
+            Number of steps.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.steps = int(steps)
+        self.resolution = 0
+    
+    def set_resolution(self, resolution, unit="m"):
+        '''
+        Sets the resolution of the contour generation.
+        Overwrites number of steps.
+
+        Parameters
+        ----------
+        resolution : Float
+            Steps per [unit].
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        None.
+
+        '''
+        factor = 1
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        self.resolution = resolution * factor
+        self.steps = 0
+    
+    def set_nozzle_type(self, nozzle_type):
+        '''
+        Sets the type of nozzle.
+        "bell", "b" for parabolic approximation of a bell nozzle.
+        "conical", "c" for conical nozzle.
+
+        Parameters
+        ----------
+        nozzle_type : String
+            Nozzle type.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.nozzle_type = nozzle_type.casefold()
+        
+    def set_chamber_type(self, chamber_type):
+        '''
+        Sets the type of chamber.
+        "cylindrical", "c" for cylindrical chamber.
+        "spherical", "s" for spherical chamber. NOT YET SUPPORTED
+        "near spherical", "ns" for near spherical chamber. NOT YET SUPPORTED
+
+        Parameters
+        ----------
+        chamber_type : String
+            Chamber type.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.chamber_type = chamber_type.casefold()
+        
+    def set_chamber(self, chamber):
+        '''
+        Sets if a chamber should be generated.
+
+        Parameters
+        ----------
+        chamber : Boolean
+            Should a chamber be generated?
+
+        Returns
+        -------
+        None.
+
+        '''
+        if chamber.casefold() in ["n", "nein", "no", "false", "ohne"]:
+            chamber = False
+        self.chamber = chamber
+    
+    def get_nozzle_parameters(self):
+        '''
+        Returns all set nozzle and chamber parameters in human legible form. 
+
+        Returns
+        -------
+        str
+            Parameters.
+
+        '''
+        return ""
     
     def export_as(self, ex_type: str):
         pass
     
-    def export_csv(self):
-        pass
+    def save_csv(self, name, separator=";", dec=","):
+        '''
+        Saves the data to disc as a .csv file.
+
+        Parameters
+        ----------
+        name : String
+            Name or path of target file. End with .csv or .txt.
+        separator : String, optional
+            Column separator. The default is ";" for Excel.
+        dec : String, optional
+            Decimal symbol. The default is "," for european standards. 
+
+        Returns
+        -------
+        None.
+
+        '''
+        frame = self.export_pandas()
+        frame.to_csv(name, sep=separator, decimal=dec)
     
     def export_np(self):
-        pass
+        '''
+        Returns the data as a numpy array.
+
+        Returns
+        -------
+        numpy.ndarray
+            Data as a numpy array.
+
+        '''
+        return self.data
     
     def export_pandas(self):
-        pass
+        '''
+        Converts and returns the data as a pandas Dataframe.
+        Column names:
+            Step: calculation step
+            x: length coordinate
+            y: radius coordinate
+
+        Returns
+        -------
+        pandas.DataFrame
+            Data frame of data.
+
+        '''
+        import pandas as pd
+        step = np.array(np.zeros(1, self.data.shape[0]), dtype=int)
+        for i in range(0, len(self.data) - 1):
+            step[i] = int(self.data[i,self.__step])
+        return pd.DataFrame({"Step": step, "x": self.data[:,self.__cx], "y": self.data[:,self.__cy]})
     
-    def export_graph(self):
-        pass
+    def export_graph(self, name, fformat, date=True, title="Nozzle"):
+        if date:
+            from datetime import datetime
+            now = datetime.now().strftime("%d/%m/%Y %H:&M:&S")
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
+        ax.set_xlim(0,self.l)
+        ax.set_ylim(bottom=0)
+        ax.axis("equal")
+        ax.set(xlabel="length [m]", ylabel="radius [m]")
+        ax.title(title + now)
+        plt.savefig(name, format=fformat)
+    
+    def draw_contour(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
+        ax.set_xlim(0,self.l)
+        ax.set_ylim(bottom=0)
+        ax.axis("equal")
+        ax.set(xlabel="length [m]", ylabel="radius [m]")
+        plt.show()
