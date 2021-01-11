@@ -90,8 +90,8 @@ class Nozzle:
         if self.chamber:
             if (self.chamber_type.casefold() == "cylindrical".casefold() or
                 self.chamber_type.casefold() == "c".casefold()):
-                    __l1 = self.l_c - self.r_c * self.rf_cf * math.tan(self.alpha_con)
-                    __l2 = self.r_c * self.rf_cf * math.sin(self.alpha_con)
+                    self.__l1 = self.l_c - self.r_c * self.rf_cf * math.tan(self.alpha_con)
+                    self.__l2 = self.r_c * self.rf_cf * math.sin(self.alpha_con)
             
             elif (self.chamber_type.casefold() == "spherical".casefold() or
                   self.chamber_type.casefold() == "s".casefold()):
@@ -102,20 +102,20 @@ class Nozzle:
             else:
                 pass #raise exception
         else: #if no chamber is selected, l1 and l2 are automatically 0
-            __l1 = 0
-            __l2 = 0
+            self.__l1 = 0
+            self.__l2 = 0
         
-        __l3 = (self.r_c * (1 - self.rf_cf * (1 - math.cos(self.alpha_con))) -
+        self.__l3 = (self.r_c * (1 - self.rf_cf * (1 - math.cos(self.alpha_con))) -
                 self.r_t * (1 + self.rf_con * (1 - math.cos(self.alpha_con)))) / (math.tan(self.alpha_con))
-        __l4 = self.r_t * self.rf_con * math.sin(self.alpha_con)
-        __l5 = self.r_t * self.rf_div * math.sin(self.alpha_divt)
+        self.__l4 = self.r_t * self.rf_con * math.sin(self.alpha_con)
+        self.__l5 = self.r_t * self.rf_div * math.sin(self.alpha_divt)
         lf = self.lf_n if (self.nozzle_type.casefold() == "bell".casefold() or self.nozzle_type.casefold() == "b".casefold()) else 1
-        __l6 = (self.r_t * (self.rf_div * (math.cos(math.radians(15))**-1 - 1) - 1) + self.r_e) * lf / math.tan(math.radians(15)) - __l5
+        self.__l6 = (self.r_t * (self.rf_div * (math.cos(math.radians(15))**-1 - 1) - 1) + self.r_e) * lf / math.tan(math.radians(15)) - self.__l5
         
-        self.l = __l1 + __l2 + __l3 + __l4 + __l5 + __l6
+        self.l = self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5 + self.__l6
         #todo: calculate all lengths
         
-        x_0 = self.l - __l6
+        x_0 = self.l - self.__l6
         y_0 = self.r_t * (1 + self.rf_div * (1 - math.cos(self.alpha_divt)))
         x_2 = self.l
         y_2 = self.r_e
@@ -128,23 +128,23 @@ class Nozzle:
         bellfunc = [sympy.lambdify(x, bellexpr[0], "numpy"), sympy.lambdify(x, bellexpr[1], "numpy")]
         
         def get_y(x):
-            if x <= __l1:
+            if x <= self.__l1:
                 x1 = x
                 return self.r_c
-            elif __l1 < x <= __l1 + __l2:
-                x2 = x - __l1
+            elif self.__l1 < x <= self.__l1 + self.__l2:
+                x2 = x - self.__l1
                 return self.r_c * (1 - self.rf_cf) + ((self.r_c * self.rf_cf)**2 - x2**2)**0.5
-            elif __l1 + __l2 < x <= __l1 + __l2 + __l3:
-                x3 = x - __l1 - __l2
+            elif self.__l1 + self.__l2 < x <= self.__l1 + self.__l2 + self.__l3:
+                x3 = x - self.__l1 - self.__l2
                 return self.r_c * (1 - self.rf_cf * (1 - math.cos(self.alpha_con))) - x3 * math.tan(self.alpha_con)
-            elif __l1 + __l2 + __l3 < x <= __l1 + __l2 + __l3 + __l4:
-                x4 = x - __l1 - __l2 - __l3
-                return self.r_t + self.r_t * self.rf_con - ((self.r_t * self.rf_con)**2 - (x4 - __l4)**2)**0.5
-            elif __l1 + __l2 + __l3 + __l4 < x <= __l1 + __l2 + __l3 + __l4 + __l5:
-                x5 = x - __l1 - __l2 - __l3 - __l4
+            elif self.__l1 + self.__l2 + self.__l3 < x <= self.__l1 + self.__l2 + self.__l3 + self.__l4:
+                x4 = x - self.__l1 - self.__l2 - self.__l3
+                return self.r_t + self.r_t * self.rf_con - ((self.r_t * self.rf_con)**2 - (x4 - self.__l4)**2)**0.5
+            elif self.__l1 + self.__l2 + self.__l3 + self.__l4 < x <= self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5:
+                x5 = x - self.__l1 - self.__l2 - self.__l3 - self.__l4
                 return self.r_t + self.r_t * self.rf_div - ((self.r_t * self.rf_div)**2 - x5**2)**0.5
-            elif __l1 + __l2 + __l3 + __l4 + __l5 < x <= self.l:
-                x6 = x - __l1 - __l2 - __l3 - __l4 - __l5
+            elif self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5 < x <= self.l:
+                x6 = x - self.__l1 - self.__l2 - self.__l3 - self.__l4 - self.__l5
                 if (self.nozzle_type.casefold() == "bell".casefold() or
                     self.nozzle_type.casefold() == "b".casefold()):
                     if(bellfunc[0](x) > bellfunc[1](x)):
@@ -207,16 +207,18 @@ class Nozzle:
             pass #error handling
         self.r_c = r_c * factor
         
-    def set_r_t(self, r_t, unit="m"):
+    def set_r_t(self, r_t, unit="m", fixed_exit=True):
         '''
-        Sets the radius of the throat.
+        Sets throat radius of the nozzle.
 
         Parameters
         ----------
         r_t : Float
             Throat radius.
         unit : String, optional
-            Unit of Length. The default is "m".
+            Unit of length. The default is "m".
+        fixed_exit : Boolean, optional
+            Change epsilon or exit radius? The default is True (change epsilon)
 
         Returns
         -------
@@ -233,17 +235,23 @@ class Nozzle:
         else:
             pass #error handling
         self.r_t = r_t * factor
+        if fixed_exit:
+            self.epsilon = self.r_e**2 / self.r_t**2
+        else:
+            self.r_e = (self.epsilon * self.r_t**2)**0.5
         
-    def set_r_e(self, r_e, unit="m"):
+    def set_r_e(self, r_e, unit="m", fixed_throat=True):
         '''
         Sets exit radius of the nozzle.
 
         Parameters
         ----------
         r_e : Float
-            Exit Radius.
+            Exit radius.
         unit : String, optional
             Unit of length. The default is "m".
+        fixed_throat : Boolean, optional
+            Change epsilon or throat Radius? The default is True. (change epsilon)
 
         Returns
         -------
@@ -260,6 +268,10 @@ class Nozzle:
         else:
             pass #error handling
         self.r_e = r_e * factor
+        if fixed_throat:
+            self.epsilon = self.r_e**2 / self.r_t**2
+        else:
+            self.r_t = (self.r_e**2 / self.epsilon)**0.5
         
     def set_rf_cf(self, rf_cf):
         '''
