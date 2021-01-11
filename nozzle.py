@@ -37,8 +37,10 @@ class Nozzle:
         
         self.l_c = 0 #length of chamber
         self.l_t = 0 #length to throat
-        self.l_e = 0 #length to exit
         self.l_n = 0 #nozzle length
+        self.l = 0 #overall length
+        
+        self.n_t #step number of throat
         
         self.lf_n = 0 #nozzle length fraction (to conical 30° nozzle)
         
@@ -53,11 +55,6 @@ class Nozzle:
         self.nozzle_type = "b" #nozzle type (bell or conical) compare with str.casefold()
         self.chamber_type = "cylindrical" #chamber shape (cylindrical), in the future also spherical and near-spherical
         self.chamber = True #with or without chamber
-        
-        self.l = 0 #overall length
-        self.l_t = 0 #length to throat
-        self.l_e = 0 #length to exit
-        self.l_n = 0 #nozzle length
         
         self.steps = 10000 #number of steps
         self.resolution = 0 #number of steps per meter
@@ -111,7 +108,10 @@ class Nozzle:
         self.__l6 = (self.r_t * (self.rf_div * (math.cos(math.radians(15))**-1 - 1) - 1) + self.r_e) * lf / math.tan(math.radians(15)) - self.__l5
         
         self.l = self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5 + self.__l6
-        #todo: calculate all lengths
+        self.l_n = self.l - self.l_c
+        self.l_t = self.__l1 + self.__l2 + self.__l3 + self.__l4
+        self.n_t = int(self.l_t * (self.l / self.steps))
+        
         if self.steps == 0 and self.resolution == 0:
             pass #error handling
         elif self.steps == 0:
@@ -170,7 +170,7 @@ class Nozzle:
         self.data[:,self.__cx] = self.data[:,self.__step] * (self.l / self.steps)
         self.data[:,self.__cy] = np.vectorize(get_y)(self.data[:,self.__cx])
         
-    def test(self):
+    def test(self): #temporary
         self.r_c = 0.03
         self.r_t = 0.02
         self.r_e = 0.04
@@ -578,6 +578,93 @@ class Nozzle:
 
         '''
         return ""
+    
+    def get_l(self, unit="m"):
+        '''
+        Returns overall length of nozzle + chamber
+
+        Parameters
+        ----------
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        Float
+            Length og nozzle + chamber.
+
+        '''
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        return self.l * factor
+    
+    def get_l_n(self, unit="m"):
+        '''
+        Returns length of nozzle section
+
+        Parameters
+        ----------
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        Float
+            length of nozzle.
+
+        '''
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        return self.l_n * factor
+    
+    def get_l_t(self, unit="m"):
+        '''
+        Returns the downstream distance to the throat
+
+        Parameters
+        ----------
+        unit : String, optional
+            Unit of length. The default is "m".
+
+        Returns
+        -------
+        Float
+            length to throat.
+
+        '''
+        if unit == "m":
+            factor = 1
+        elif unit == "mm":
+            factor = 1E-3
+        elif unit == "cm":
+            factor = 1E-2
+        else:
+            pass #error handling
+        return self.l_t * factor
+    
+    def get_n_t(self):
+        '''
+        Returns the step number of the throat
+
+        Returns
+        -------
+        Integer
+            Step number of throat.
+
+        '''
+        return self.n_t
     
     def save_csv(self, name, separator=";", dec=","):
         '''
