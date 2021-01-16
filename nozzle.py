@@ -40,7 +40,7 @@ class Nozzle:
         self.l_n = 0 #nozzle length
         self.l = 0 #overall length
         
-        self.n_t #step number of throat
+        self.n_t = 0 #step number of throat
         
         self.lf_n = 0 #nozzle length fraction (to conical 30° nozzle)
         
@@ -68,8 +68,60 @@ class Nozzle:
     def __array__(self):
         pass
     
-    def set_values(self):
-        pass
+    def quickset(self, r_c, r_t, r_e, alpha_con, alpha_divt, alpha_dive, rf_con, rf_div, l_c, nozzle_type, lf_n, steps, lunit, chamber=True):
+        '''
+        Sets all necessary parameters at once.
+
+        Parameters
+        ----------
+        r_c : Float
+            Chamber radius.
+        r_t : Float
+            Throat radius.
+        r_e : Float
+            Exit radius.
+        alpha_con : Float
+            Converging angle [degrees].
+        alpha_divt : Float
+            Diverging angle at throat [degrees].
+        alpha_dive : Float
+            Diverging angle at exit [degrees].
+        rf_con : Float
+            Radius fraction at throat upstream.
+        rf_div : Float
+            Radius fraction at throat downstream.
+        l_c : Float
+            Length of chamber.
+        nozzle_type : String
+            Type of nozzle ("c" or "b").
+        lf_n : Float
+            Length fraction of the bell nozzle.
+        steps : Integer
+            Number of steps.
+        lunit : String
+            Unit length (e.g. "mm").
+        chamber : Boolean, optional
+            Should a chamber be generated? The default is True.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.set_r_c(r_c, unit=lunit)
+        self.set_r_t(r_t, unit=lunit)
+        self.set_r_e(r_e, unit=lunit)
+        self.set_alpha_con(alpha_con)
+        self.set_alpha_divt(alpha_divt)
+        self.set_alpha_dive(alpha_dive)
+        self.set_rf_con(rf_con)
+        self.set_rf_div(rf_div)
+        self.set_l_c(l_c, unit=lunit)
+        self.set_chamber(chamber)
+        self.set_chamber_type("c")
+        self.set_nozzle_type(nozzle_type)
+        self.set_lf_n(lf_n)
+        self.set_steps(steps)
     
     def generate(self):
         '''
@@ -116,11 +168,11 @@ class Nozzle:
             pass #error handling
         elif self.steps == 0:
             self.steps = int(self.resolution * self.l)
-            self.resolution = self.l / self.steps
+            self.resolution = self.steps / self.l
         elif self.resolution == 0:
-            self.resolution = self.l / self.steps
+            self.resolution = self.steps / self.l
         else:
-            self.resolution == self.l / self.steps
+            self.resolution == self.steps / self.l
         
         self.data = np.array(np.zeros((self.steps + 1, 3)))
         self.data[:,self.__step] = np.arange(0, self.steps + 1)
@@ -174,6 +226,7 @@ class Nozzle:
         self.r_c = 0.03
         self.r_t = 0.02
         self.r_e = 0.04
+        self.set_r_e(0.04)
         
         self.rf_cf = 0.08
         self.rf_con = 1.5
@@ -186,7 +239,7 @@ class Nozzle:
         self.alpha_con = math.radians(25)
         self.alpha_divt = math.radians(30)
         self.alpha_dive = math.radians(10)
-        
+        self.steps = 1000
         self.generate()
         return self.data
     
@@ -563,8 +616,9 @@ class Nozzle:
         None.
 
         '''
-        if chamber.casefold() in ["n", "nein", "no", "false", "ohne"]:
-            chamber = False
+        if type(chamber) != bool:
+            if chamber.casefold() in ["n", "nein", "no", "false", "ohne"]:
+                chamber = False
         self.chamber = chamber
     
     def get_nozzle_parameters(self):
@@ -577,7 +631,25 @@ class Nozzle:
             Parameters.
 
         '''
-        return ""
+        params = ("====================================\n" + 
+                  "{:20}{:6.2f} mm\n".format("Chamber radius", self.r_c * 1000) +
+                  "{:20}{:6.2f} mm\n".format("Throat radius", self.r_t * 1000) + 
+                  "{:20}{:6.2f} mm\n".format("Exit radius", self.r_e * 1000) + 
+                  "\n" +
+                  "{:20}{:6.2f}\n".format("Expansion ratio", self.epsilon) +
+                  "\n" +
+                  "{:20}{:6.2f} °\n".format("Converging angle", math.degrees(self.alpha_con)) +
+                  "{:20}{:6.2f} °\n".format("Diverging angle 1", math.degrees(self.alpha_divt)) +
+                  "{:20}{:6.2f} °\n".format("Diverging angle 2", math.degrees(self.alpha_dive)) +
+                  "\n" +
+                  "{:20}{:6.2f} mm\n".format("Chamber length", self.l_c * 1000) +
+                  "{:20}{:6.2f} mm\n".format("Overall length", self.l * 1000) +
+                  "\n" +
+                  "{:20}{:6d}\n".format("Steps", self.steps) +
+                  "{:20}{:6.2f} Steps/mm\n".format("Resolution", self.resolution / 1000) +
+                  "===================================="
+                  )
+        return params
     
     def get_l(self, unit="m"):
         '''
@@ -764,8 +836,8 @@ class Nozzle:
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
-        ax.set_xlim(0,self.l)
-        ax.set_ylim(bottom=0)
         ax.axis("equal")
+        #ax.set_xlim(0,self.l)
+        ax.set_ylim(bottom=0)
         ax.set(xlabel="length [m]", ylabel="radius [m]")
         plt.show()
