@@ -12,6 +12,11 @@ import bezier
 import sympy
 from sympy.solvers import solve
 
+__author__ = "Bernhard Hansemann"
+__date__ = "Jan 18, 2021"
+__contact__ = "bernhard.hansemann@spaceteam.at"
+__version__ = "1.0.0"
+
 class Nozzle:
     '''Placeholder'''
     
@@ -59,16 +64,23 @@ class Nozzle:
         self.steps = 10000 #number of steps
         self.resolution = 0 #number of steps per meter
         
-        self.data = np.array(np.zeros((self.steps + 1, 3)))
+        self.data = np.array(np.zeros((self.steps + 1, 3))) #representation of the data as a numpy array
         self.data[:,self.__step] = np.arange(0, self.steps + 1)
     
     def __repr__(self):
-        pass
+        csvstring = ""
+        for i in self.data[:,self.__step]:
+            i=int(i)
+            csvstring = csvstring + ','.join(['%.5f' % num for num in self.data[i,:]]) + "\n"
+            return csvstring
+    
+    def __string__(self):
+        return self.get_nozzle_parameters()
     
     def __array__(self):
-        pass
+        return self.data
     
-    def quickset(self, r_c, r_t, r_e, alpha_con, alpha_divt, alpha_dive, rf_con, rf_div, l_c, nozzle_type, lf_n, steps, lunit, chamber=True):
+    def quickset(self, r_c, r_t, r_e, alpha_con, alpha_divt, alpha_dive, rf_con, rf_div, l_c, rf_cf, nozzle_type, lf_n, steps, lunit, chamber=True):
         '''
         Sets all necessary parameters at once.
 
@@ -92,6 +104,8 @@ class Nozzle:
             Radius fraction at throat downstream.
         l_c : Float
             Length of chamber.
+        rf_cf : Float
+            Chamber-nozzle fillet radius relative to the chamber radius.
         nozzle_type : String
             Type of nozzle ("c" or "b").
         lf_n : Float
@@ -117,6 +131,7 @@ class Nozzle:
         self.set_rf_con(rf_con)
         self.set_rf_div(rf_div)
         self.set_l_c(l_c, unit=lunit)
+        self.set_rf_cf(rf_cf)
         self.set_chamber(chamber)
         self.set_chamber_type("c")
         self.set_nozzle_type(nozzle_type)
@@ -134,6 +149,7 @@ class Nozzle:
 
         '''
         
+        #check what chamber type is selected, update relevant lengths and set draw function (tbd)
         if self.chamber:
             if (self.chamber_type.casefold() == "cylindrical".casefold() or
                 self.chamber_type.casefold() == "c".casefold()):
@@ -147,11 +163,12 @@ class Nozzle:
                   self.chamber_type.casefold() == "ns".casefold()):
                     pass
             else:
-                pass #raise exception
+                raise ValueError("Chamber type of \"" + self.chamber_type + "\" invalid!")
         else: #if no chamber is selected, l1 and l2 are automatically 0
             self.__l1 = 0
             self.__l2 = 0
         
+        #setting other lengths relevant for nozzle generation
         self.__l3 = (self.r_c * (1 - self.rf_cf * (1 - math.cos(self.alpha_con))) -
                 self.r_t * (1 + self.rf_con * (1 - math.cos(self.alpha_con)))) / (math.tan(self.alpha_con))
         self.__l4 = self.r_t * self.rf_con * math.sin(self.alpha_con)
@@ -159,13 +176,15 @@ class Nozzle:
         lf = self.lf_n if (self.nozzle_type.casefold() == "bell".casefold() or self.nozzle_type.casefold() == "b".casefold()) else 1
         self.__l6 = (self.r_t * (self.rf_div * (math.cos(math.radians(15))**-1 - 1) - 1) + self.r_e) * lf / math.tan(math.radians(15)) - self.__l5
         
+        #calculating lengths
         self.l = self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5 + self.__l6
         self.l_n = self.l - self.l_c
         self.l_t = self.__l1 + self.__l2 + self.__l3 + self.__l4
         self.n_t = int(self.l_t * (self.l / self.steps))
         
+        #calculating and setting number of steps/resolution
         if self.steps == 0 and self.resolution == 0:
-            pass #error handling
+            raise ValueError("No resolution or number of steps selected.")
         elif self.steps == 0:
             self.steps = int(self.resolution * self.l)
             self.resolution = self.steps / self.l
@@ -174,9 +193,12 @@ class Nozzle:
         else:
             self.resolution == self.steps / self.l
         
+        #setting up the numpy array with step number and x length
         self.data = np.array(np.zeros((self.steps + 1, 3)))
         self.data[:,self.__step] = np.arange(0, self.steps + 1)
+        self.data[:,self.__cx] = self.data[:,self.__step] * (self.l / self.steps)
         
+        #drawing bezier curve for bell nozzle geometry
         x_0 = self.l - self.__l6
         y_0 = self.r_t * (1 + self.rf_div * (1 - math.cos(self.alpha_divt)))
         x_2 = self.l
@@ -189,6 +211,7 @@ class Nozzle:
         bellexpr = solve(bell.implicitize(), y)
         bellfunc = [sympy.lambdify(x, bellexpr[0], "numpy"), sympy.lambdify(x, bellexpr[1], "numpy")]
         
+        #defining the complete function the chamber-nozzle contour follows
         def get_y(x):
             if x <= self.__l1:
                 x1 = x
@@ -217,29 +240,22 @@ class Nozzle:
                     self.nozzle_type.casefold() == "c".casefold()):
                     return self.r_t * (1 + self.rf_div * (1 - math.cos(self.alpha_divt))) + x6 * math.tan(self.alpha_divt)
                 else:
-                    pass #error handling
-                    
-        self.data[:,self.__cx] = self.data[:,self.__step] * (self.l / self.steps)
+                    raise ValueError("Nozzle type of\"" + self.nozzle_type + "\" invalid!")
+        
+        #generating the contour
         self.data[:,self.__cy] = np.vectorize(get_y)(self.data[:,self.__cx])
         
-    def test(self): #temporary
-        self.r_c = 0.03
-        self.r_t = 0.02
-        self.r_e = 0.04
-        self.set_r_e(0.04)
-        
-        self.rf_cf = 0.08
-        self.rf_con = 1.5
-        self.rf_div = 0.382
-        
-        self.l_c = 0.08
-        
-        self.lf_n = 0.8
-        
-        self.alpha_con = math.radians(25)
-        self.alpha_divt = math.radians(30)
-        self.alpha_dive = math.radians(10)
-        self.steps = 1000
+    def sample(self):
+        '''
+        Sets and generates a sample nozzle and chamber.
+
+        Returns
+        -------
+        numpy.ndarray
+            The data array of the sample nozzle.
+
+        '''
+        self.quickset(30, 20, 40, 25, 30, 10, 1.5, 0.382, 80, 0.1, "b", 0.9, 1000, "mm")
         self.generate()
         return self.data
     
@@ -259,6 +275,7 @@ class Nozzle:
         None.
 
         '''
+        #get conversion factor from unit
         factor = 1
         if unit == "m":
             factor = 1
@@ -267,7 +284,11 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
+            raise ValueError("Unknown length unit: " + unit)
+        if type(r_c) != float or type(r_c) != int:
+            raise TypeError("Chamber radius must be a Number.")
+        if r_c <= 0:
+            raise ValueError("Chamber radius must be greater than 0.")
         self.r_c = r_c * factor
         
     def set_r_t(self, r_t, unit="m", fixed_exit=True):
@@ -296,7 +317,11 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
+            raise ValueError("Unknown length unit: " + unit)
+        if type(r_t) != float or type(r_t) != int:
+            raise TypeError("Throat radius must be a Number.")
+        if r_t <= 0:
+            raise ValueError("Throat radius must be greater than 0.")
         self.r_t = r_t * factor
         if fixed_exit:
             self.epsilon = self.r_e**2 / self.r_t**2
@@ -329,7 +354,7 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
+            raise ValueError("Unknown length unit: " + unit)
         self.r_e = r_e * factor
         if fixed_throat:
             self.epsilon = self.r_e**2 / self.r_t**2
@@ -412,7 +437,7 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
+            raise ValueError("Unknown length unit: " + unit)
         self.l_c = l_c * factor
         
     def set_lf_n(self, lf_n):
@@ -452,6 +477,8 @@ class Nozzle:
             self.alpha_con = math.radians(alpha_con)
         elif unit.casefold() == "radians":
             self.alpha_con = alpha_con
+        else:
+            raise ValueError("Unknown angle unit: " + unit)
             
     def set_alpha_divt(self, alpha_divt, unit="degrees"):
         '''
@@ -473,6 +500,8 @@ class Nozzle:
             self.alpha_divt = math.radians(alpha_divt)
         elif unit.casefold() == "radians":
             self.alpha_divt = alpha_divt
+        else:
+            raise ValueError("Unknown angle unit: " + unit)
             
     def set_alpha_dive(self, alpha_dive, unit="degrees"):
         '''
@@ -494,6 +523,8 @@ class Nozzle:
             self.alpha_dive = math.radians(alpha_dive)
         elif unit.casefold() == "radians":
             self.alpha_dive = alpha_dive
+        else:
+            raise ValueError("Unknown angle unit: " + unit)
     
     def set_epsilon(self, epsilon, fixed_throat = True):
         '''
@@ -561,7 +592,7 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
+            raise ValueError("Unknown length unit: " + unit)
         self.resolution = resolution * factor
         self.steps = 0
     
@@ -644,6 +675,9 @@ class Nozzle:
                   "\n" +
                   "{:20}{:6.2f} mm\n".format("Chamber length", self.l_c * 1000) +
                   "{:20}{:6.2f} mm\n".format("Overall length", self.l * 1000) +
+                  "\n" +
+                  "{:20}{:6.2f}\n".format("Nozzle type", self.nozzle_type) +
+                  "{:20}{:6.2f}\n".format("Chamber type", self.chamber_type) +
                   "\n" +
                   "{:20}{:6d}\n".format("Steps", self.steps) +
                   "{:20}{:6.2f} Steps/mm\n".format("Resolution", self.resolution / 1000) +
@@ -836,8 +870,12 @@ class Nozzle:
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
-        ax.axis("equal")
+        #ax.axis("equal")
         #ax.set_xlim(0,self.l)
-        ax.set_ylim(bottom=0)
+        #ax.set_ylim(0,(self.r_c * 1.1) if (self.r_c < self.r_e) else (self.r_e * 1.1) )
         ax.set(xlabel="length [m]", ylabel="radius [m]")
+        #plt.axis([0,self.l,0,(self.r_c * 1.1) if (self.r_c < self.r_e) else (self.r_e * 1.1)],aspect = 'equal')
+        ax.set_aspect("equal", adjustable="datalim", anchor="SW")
+        ax.set_ylim(0,(self.r_c * 1.1) if (self.r_c < self.r_e) else (self.r_e * 1.1))
+        #keine ahnung wie man gleiche Skalierung und eigene Limits macht :/
         plt.show()
