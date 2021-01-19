@@ -6,14 +6,13 @@ Created on Wed Oct  7 14:14:00 2020
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 import bezier
 import sympy
 from sympy.solvers import solve
 
 __author__ = "Bernhard Hansemann"
-__date__ = "Jan 18, 2021"
+__date__ = "Jan 19, 2021"
 __contact__ = "bernhard.hansemann@spaceteam.at"
 __version__ = "1.0.0"
 
@@ -72,9 +71,9 @@ class Nozzle:
         for i in self.data[:,self.__step]:
             i=int(i)
             csvstring = csvstring + ','.join(['%.5f' % num for num in self.data[i,:]]) + "\n"
-            return csvstring
+        return csvstring
     
-    def __string__(self):
+    def __str__(self):
         return self.get_nozzle_parameters()
     
     def __array__(self):
@@ -133,7 +132,7 @@ class Nozzle:
         self.set_l_c(l_c, unit=lunit)
         self.set_rf_cf(rf_cf)
         self.set_chamber(chamber)
-        self.set_chamber_type("c")
+        self.set_chamber_type("cylindrical")
         self.set_nozzle_type(nozzle_type)
         self.set_lf_n(lf_n)
         self.set_steps(steps)
@@ -180,7 +179,7 @@ class Nozzle:
         self.l = self.__l1 + self.__l2 + self.__l3 + self.__l4 + self.__l5 + self.__l6
         self.l_n = self.l - self.l_c
         self.l_t = self.__l1 + self.__l2 + self.__l3 + self.__l4
-        self.n_t = int(self.l_t * (self.l / self.steps))
+        self.n_t = int(self.l_t * (self.steps / self.l))
         
         #calculating and setting number of steps/resolution
         if self.steps == 0 and self.resolution == 0:
@@ -255,7 +254,7 @@ class Nozzle:
             The data array of the sample nozzle.
 
         '''
-        self.quickset(30, 20, 40, 25, 30, 10, 1.5, 0.382, 80, 0.1, "b", 0.9, 1000, "mm")
+        self.quickset(30, 20, 40, 25, 30, 10, 1.5, 0.382, 80, 0.1, "bell", 0.9, 1000, "mm")
         self.generate()
         return self.data
     
@@ -285,10 +284,11 @@ class Nozzle:
             factor = 1E-2
         else:
             raise ValueError("Unknown length unit: " + unit)
-        if type(r_c) != float or type(r_c) != int:
+        if not(type(r_c) == float or type(r_c) == int):
             raise TypeError("Chamber radius must be a Number.")
         if r_c <= 0:
             raise ValueError("Chamber radius must be greater than 0.")
+            
         self.r_c = r_c * factor
         
     def set_r_t(self, r_t, unit="m", fixed_exit=True):
@@ -309,6 +309,7 @@ class Nozzle:
         None.
 
         '''
+        #get conversion factor from unit
         factor = 1
         if unit == "m":
             factor = 1
@@ -318,11 +319,13 @@ class Nozzle:
             factor = 1E-2
         else:
             raise ValueError("Unknown length unit: " + unit)
-        if type(r_t) != float or type(r_t) != int:
+        if not(type(r_t) == float or type(r_t) == int):
             raise TypeError("Throat radius must be a Number.")
         if r_t <= 0:
             raise ValueError("Throat radius must be greater than 0.")
+            
         self.r_t = r_t * factor
+        #chane r_e or epsilon
         if fixed_exit:
             self.epsilon = self.r_e**2 / self.r_t**2
         else:
@@ -346,6 +349,7 @@ class Nozzle:
         None.
 
         '''
+        #get conversion factor from unit
         factor = 1
         if unit == "m":
             factor = 1
@@ -355,7 +359,13 @@ class Nozzle:
             factor = 1E-2
         else:
             raise ValueError("Unknown length unit: " + unit)
+        if not(type(r_e) == float or type(r_e) == int):
+            raise TypeError("Exit radius must be a Number.")
+        if r_e <= 0:
+            raise ValueError("Exit radius must be greater than 0.")
+            
         self.r_e = r_e * factor
+        #change r_t or epsilon
         if fixed_throat:
             self.epsilon = self.r_e**2 / self.r_t**2
         else:
@@ -375,6 +385,11 @@ class Nozzle:
         None.
         
         '''
+        if not(type(rf_cf) == float or type(rf_cf) == int):
+            raise TypeError("Chamber-nozzle fillet ratio must be a Number.")
+        if rf_cf <= 0:
+            raise ValueError("Chamber-nozzle fillet ratio must be greater than 0.")
+            
         self.rf_cf = rf_cf
         
     def set_rf_con(self, rf_con):
@@ -393,6 +408,11 @@ class Nozzle:
         None.
 
         '''
+        if not(type(rf_con) == float or type(rf_con) == int):
+            raise TypeError("Radius fraction must be a Number.")
+        if rf_con <= 0:
+            raise ValueError("Radius fraction must be greater than 0.")
+            
         self.rf_con = rf_con
         
     def set_rf_div(self, rf_div):
@@ -411,6 +431,11 @@ class Nozzle:
         None.
 
         '''
+        if not(type(rf_div) == float or type(rf_div) == int):
+            raise TypeError("Radius fraction must be a Number.")
+        if rf_div <= 0:
+            raise ValueError("Radius fraction must be greater than 0.")
+            
         self.rf_div = rf_div
         
     def set_l_c(self, l_c, unit="m"):
@@ -429,6 +454,7 @@ class Nozzle:
         None.
 
         '''
+        #get conversion factor from unit
         factor = 1
         if unit == "m":
             factor = 1
@@ -438,6 +464,11 @@ class Nozzle:
             factor = 1E-2
         else:
             raise ValueError("Unknown length unit: " + unit)
+        if not(type(l_c) == float or type(l_c) == int):
+            raise TypeError("Chamber length must be a Number.")
+        if l_c < 0:
+            raise ValueError("Chamber length must be positive.")
+            
         self.l_c = l_c * factor
         
     def set_lf_n(self, lf_n):
@@ -455,6 +486,11 @@ class Nozzle:
         None.
 
         '''
+        if not(type(lf_n) == float or type(lf_n) == int):
+            raise TypeError("Length fraction must be a Number.")
+        if not(0 <= lf_n <= 1):
+            raise ValueError("Length fraction must be between 0 and 1, is " + str(lf_n))
+            
         self.lf_n = lf_n
         
     def set_alpha_con(self, alpha_con, unit="degrees"):
@@ -473,6 +509,11 @@ class Nozzle:
         None.
 
         '''
+        if not(type(alpha_con) == float or type(alpha_con) == int):
+            raise TypeError("Converging angle must be a Number.")
+        if alpha_con <= 0:
+            raise ValueError("Converging angle must be greater than 0.")
+            
         if unit.casefold() == "degrees":
             self.alpha_con = math.radians(alpha_con)
         elif unit.casefold() == "radians":
@@ -496,6 +537,11 @@ class Nozzle:
         None.
 
         '''
+        if not(type(alpha_divt) == float or type(alpha_divt) == int):
+            raise TypeError("Diverging throat angle must be a Number.")
+        if alpha_divt <= 0:
+            raise ValueError("Diverging throat angle must be greater than 0.")
+            
         if unit.casefold() == "degrees":
             self.alpha_divt = math.radians(alpha_divt)
         elif unit.casefold() == "radians":
@@ -519,6 +565,11 @@ class Nozzle:
         None.
 
         '''
+        if not(type(alpha_dive) == float or type(alpha_dive) == int):
+            raise TypeError("Diverging exit angle must be a Number.")
+        if alpha_dive <= 0:
+            raise ValueError("Diverging exit angle must be greater than 0.")
+            
         if unit.casefold() == "degrees":
             self.alpha_dive = math.radians(alpha_dive)
         elif unit.casefold() == "radians":
@@ -543,7 +594,13 @@ class Nozzle:
         None.
 
         '''
+        if not(type(epsilon) == float or type(epsilon) == int):
+            raise TypeError("Expansion area ratio must be a Number.")
+        if epsilon <= 0:
+            raise ValueError("Expansion area ratio must be greater than 0.")
+            
         self.epsilon = epsilon
+        #change r_t or r_e
         if fixed_throat:
             self.r_e = (epsilon * self.r_t **2)**0.5
         else:
@@ -564,6 +621,11 @@ class Nozzle:
         None.
 
         '''
+        if type(steps) != int:
+            raise TypeError("Number of steps must be an Integer.")
+        if steps <= 0:
+            raise ValueError("Number of steps must be greater than 0.")
+            
         self.steps = int(steps)
         self.resolution = 0
     
@@ -584,6 +646,7 @@ class Nozzle:
         None.
 
         '''
+        #get conversion factor from unit
         factor = 1
         if unit == "m":
             factor = 1
@@ -593,6 +656,11 @@ class Nozzle:
             factor = 1E-2
         else:
             raise ValueError("Unknown length unit: " + unit)
+        if not(type(resolution) == float or type(resolution) == int):
+            raise TypeError("Resolution must be a Number.")
+        if resolution <= 0:
+            raise ValueError("Resolution must be greater than 0.")
+            
         self.resolution = resolution * factor
         self.steps = 0
     
@@ -612,6 +680,8 @@ class Nozzle:
         None.
 
         '''
+        if type(nozzle_type) != str:
+            raise TypeError("Nozzle type must be a String.")
         self.nozzle_type = nozzle_type.casefold()
         
     def set_chamber_type(self, chamber_type):
@@ -631,6 +701,8 @@ class Nozzle:
         None.
 
         '''
+        if type(chamber_type) != str:
+            raise TypeError("Chamber type must be a String.")
         self.chamber_type = chamber_type.casefold()
         
     def set_chamber(self, chamber):
@@ -648,8 +720,7 @@ class Nozzle:
 
         '''
         if type(chamber) != bool:
-            if chamber.casefold() in ["n", "nein", "no", "false", "ohne"]:
-                chamber = False
+            raise TypeError("Chamber must be a Boolean.")
         self.chamber = chamber
     
     def get_nozzle_parameters(self):
@@ -676,8 +747,8 @@ class Nozzle:
                   "{:20}{:6.2f} mm\n".format("Chamber length", self.l_c * 1000) +
                   "{:20}{:6.2f} mm\n".format("Overall length", self.l * 1000) +
                   "\n" +
-                  "{:20}{:6.2f}\n".format("Nozzle type", self.nozzle_type) +
-                  "{:20}{:6.2f}\n".format("Chamber type", self.chamber_type) +
+                  "{:20}{:<6s}\n".format("Nozzle type", self.nozzle_type) +
+                  "{:20}{:<6s}\n".format("Chamber type", self.chamber_type) +
                   "\n" +
                   "{:20}{:6d}\n".format("Steps", self.steps) +
                   "{:20}{:6.2f} Steps/mm\n".format("Resolution", self.resolution / 1000) +
@@ -707,8 +778,8 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
-        return self.l * factor
+            raise ValueError("Unknown length unit: " + unit)
+        return self.l / factor
     
     def get_l_n(self, unit="m"):
         '''
@@ -732,8 +803,8 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
-        return self.l_n * factor
+            raise ValueError("Unknown length unit: " + unit)
+        return self.l_n / factor
     
     def get_l_t(self, unit="m"):
         '''
@@ -757,8 +828,8 @@ class Nozzle:
         elif unit == "cm":
             factor = 1E-2
         else:
-            pass #error handling
-        return self.l_t * factor
+            raise ValueError("Unknown length unit: " + unit)
+        return self.l_t / factor
     
     def get_n_t(self):
         '''
@@ -820,12 +891,13 @@ class Nozzle:
 
         '''
         import pandas as pd
-        step = np.array(np.zeros(1, self.data.shape[0]), dtype=int)
-        for i in range(0, len(self.data) - 1):
+        
+        step = np.array(np.zeros(self.data[:,self.__step].shape[0]), dtype=int)
+        for i in range(0, len(self.data[:,0]) - 1):
             step[i] = int(self.data[i,self.__step])
-        return pd.DataFrame({"Step": step, "x": self.data[:,self.__cx], "y": self.data[:,self.__cy]})
+        return pd.DataFrame({"x": self.data[:,self.__cx], "y": self.data[:,self.__cy]})
     
-    def export_graph(self, name, fformat, date=True, title="Nozzle"):
+    def export_graph(self, name, fformat, date=True, title="Nozzle", dpi=None):
         '''
         Exports the nozzle contour as a picture using matplotlib.
 
@@ -839,15 +911,20 @@ class Nozzle:
             Sets if the current date and time should be added to the titel. The default is True.
         title : String, optional
             Title of the plot. The default is "Nozzle".
-
+        dpi : Float, optional
+            DPI of the exported image. The default is 80.   
+            
         Returns
         -------
         None.
 
         '''
+        import matplotlib.pyplot as plt
+        
+        now = ""
         if date:
             from datetime import datetime
-            now = datetime.now().strftime("%d/%m/%Y %H:&M:&S")
+            now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
@@ -855,8 +932,9 @@ class Nozzle:
         ax.set_ylim(bottom=0)
         ax.axis("equal")
         ax.set(xlabel="length [m]", ylabel="radius [m]")
-        ax.title(title + now)
-        plt.savefig(name, format=fformat)
+        fulltitle = str(title) + "  " + str(now)
+        ax.set_title(fulltitle)
+        plt.savefig(name, dpi=dpi, format=fformat)
     
     def draw_contour(self):
         '''
@@ -867,6 +945,8 @@ class Nozzle:
         None.
 
         '''
+        import matplotlib.pyplot as plt
+        
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(self.data[:,self.__cx], self.data[:, self.__cy])
@@ -876,6 +956,30 @@ class Nozzle:
         ax.set(xlabel="length [m]", ylabel="radius [m]")
         #plt.axis([0,self.l,0,(self.r_c * 1.1) if (self.r_c < self.r_e) else (self.r_e * 1.1)],aspect = 'equal')
         ax.set_aspect("equal", adjustable="datalim", anchor="SW")
-        ax.set_ylim(0,(self.r_c * 1.1) if (self.r_c < self.r_e) else (self.r_e * 1.1))
+        #ax.set_ylim(0,(self.r_c * 1.1) if (self.r_c < self.r_e) else (self.r_e * 1.1))
         #keine ahnung wie man gleiche Skalierung und eigene Limits macht :/
         plt.show()
+
+
+if __name__ == "__main__":
+    print("This file is not meant to be run alone. It was written to be importet as a custom module.")
+    print("Here is a demonstration:")
+    test = Nozzle()
+    test.sample()
+    print("I have generated a sample nozzle and chamber with the following parameters:")
+    print(test)
+    input()
+    print("Here is the contour as a Graph!")
+    test.draw_contour()
+    input()
+    print("Let's change the nozzle type to conical and the expansion ratio to 10. We should also change the diverging angle.")
+    test.set_nozzle_type("conical")
+    test.set_epsilon(10)
+    test.set_alpha_divt(30)
+    print("Don't forget to generate!")
+    input()
+    test.generate()
+    print("Here is our new nozzle:")
+    print(test)
+    test.draw_contour()
+    print("For more information contact " + __author__)
