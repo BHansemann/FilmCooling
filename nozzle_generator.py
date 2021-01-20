@@ -14,7 +14,7 @@ from sympy.solvers import solve
 __author__ = "Bernhard Hansemann"
 __date__ = "Jan 19, 2021"
 __contact__ = "bernhard.hansemann@spaceteam.at"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 class Nozzle:
     '''Placeholder'''
@@ -975,7 +975,7 @@ if __name__ == "__main__":
     print("Let's change the nozzle type to conical and the expansion ratio to 10. We should also change the diverging angle.")
     test.set_nozzle_type("conical")
     test.set_epsilon(10)
-    test.set_alpha_divt(30)
+    test.set_alpha_divt(15)
     print("Don't forget to generate!")
     input()
     test.generate()
