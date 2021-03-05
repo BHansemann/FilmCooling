@@ -97,4 +97,11 @@ def get_heat_transfer_coefficient(P, T, r, u, mix: dict):
     rho = get_rho(P, T, mix)
     cp = get_cp(P, T, mix)
     return St * u * rho * cp
+
+def get_adiabatic_wall_temperature(P, T, u, recovery_factor, mix: dict):
+    M = u / get_speed_of_sound(P, T, mix)
+    return T * (1 + recovery_factor * (get_kappa(P, T, mix) - 1) / 2 * M**2)
+
+def get_heat_of_vaporization(P, substance):
+    return CP.PropsSI("H", "P", P, "Q", 1, substance) - CP.PropsSI("H", "P", P, "Q", 0, substance)
     
