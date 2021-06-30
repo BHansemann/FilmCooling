@@ -2,10 +2,10 @@
 """
 Created on Fri Jan 22 16:42:05 2021
 
-@author: Berni
+@auth"or: Berni
 """
 
-import sympy
+"""import sympy
 import math
 import numpy as np
 
@@ -21,4 +21,14 @@ def funcmatrix(P_2, T_2, u_2):
 def jacobimatrix():
     return np.array([[], [], []], 
                     [[], [], []], 
-                    [[], [], []])
+                    [[], [], []])"""
+
+import thermodynamic_toolbox as thermo
+
+mix = {'CO': 0.22927143797319066,
+ 'CO2': 0.03355950272079416,
+ 'H2': 0.21465190951430582,
+ 'H2O': 0.17864231755549284,
+ 'N2': 0.3438748322362165}
+
+thermo.get_viscosity_mix(1000000, 2000, mix)

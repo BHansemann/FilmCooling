@@ -60,6 +60,9 @@ def get_kappa(P, T, mix: dict) -> float:
 def get_rho(P, T, mix: dict) -> float:
     return P / (T * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) / CP.PropsSI("M", mix_to_CP_string(mix)))
 
+def get_specific_gas_constant(mix: dict) -> float:
+    return CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) / CP.PropsSI("M", mix_to_CP_string(mix))
+
 def get_speed_of_sound(P, T, mix: dict) -> float:
     return (get_kappa(P, T, mix) * CP.PropsSI("GAS_CONSTANT", mix_to_CP_string(mix)) * T / CP.PropsSI("M", mix_to_CP_string(mix)))**0.5
 
@@ -74,17 +77,59 @@ def get_friction_factor(Re) -> float: #acc to McKeon et al. [1]
     def f(x):
         z = 1.93 * math.log(Re * x**0.5, 10) - 0.537 - x**-0.5
         return z
-    return fsolve(f, 10**-5)
+    return fsolve(f, 10**-5)[0]
 
 def get_reynolds_number(P, T, r, u, mix: dict) -> float:
     rho = get_rho(P, T, mix)
-    visc = CP.PropsSI("VISCOSITY", "P", P, "T", T, mix_to_CP_string(mix))
+    #visc = CP.PropsSI("VISCOSITY", "P", P, "T", T, mix_to_CP_string(mix))
+    visc =  get_viscosity_mix(P, T, mix)
     return rho * u * 2*r / visc
+
+def get_viscosity(P, T, fluid):
+    VDI_params = {"CO": (0.01384*10**-5, 0.74306*10**-7, -0.62996*10**-10, 0.03948*10**-12, -0.01032*10**-15),
+                  "CO2": (-0.18024*10**-5, 0.65989*10**-7, -0.37108*10**-10, 0.01586*10**-12, -0.00300*10**-15)} #VDI_Waermeatlas S.381, S.450
+    if fluid in VDI_params:
+        a, b, c, d, e = VDI_params[fluid]
+        return a + b*T + c*T**2 + d*T**3 + e*T**4
+    else:
+        return CP.PropsSI("VISCOSITY", "T", T, "P", P, fluid)
+
+def get_viscosity_mix(P, T, mix: dict):
+    mfmix = get_mass_frac(mix)
+    visc = 0
+    for i in mix:
+        denominator = 0
+        for j in mix:
+            F = ((1 + (get_viscosity(P, T, i) / get_viscosity(P, T, j))**0.5 * (CP.PropsSI("M", j) / CP.PropsSI("M", i))**0.25)**2
+                 / (8 * (1 + CP.PropsSI("M", i) / CP.PropsSI("M", j)))**0.5)
+            denominator += F * mfmix[j]
+        visc += mfmix[i] * get_viscosity(P, T, i) / denominator
+    return visc
+
+def get_thermal_conductivity(P, T, fluid):
+    VDI_params = {"CO": (-0.783*10**-3, 0.10317*10**-3, -0.067590*10**-6, 0.039450*10**-9, -0.009470*10**-12)}
+    if fluid in VDI_params:
+        a, b, c, d, e = VDI_params[fluid]
+        return a + b*T + c*T**2 + d*T**3 + e*T**4
+    else:
+        return CP.PropsSI("CONDUCTIVITY", "P", P, "T", T, fluid)
+
+def get_thermal_conductivity_mix(P, T, mix):
+    mfmix = get_mass_frac(mix)
+    cond = 0
+    for i in mix:
+        denominator = 0
+        for j in mix:
+            F = ((1 + (get_thermal_conductivity(P, T, i) / get_thermal_conductivity(P, T, j))**0.5 * (CP.PropsSI("M", j) / CP.PropsSI("M", i))**0.25)**2
+                 / (8 * (1 + CP.PropsSI("M", i) / CP.PropsSI("M", j)))**0.5)
+            denominator += F * mfmix[j]
+        cond += mfmix[i] * get_thermal_conductivity(P, T, i) / denominator
+    return cond
 
 def get_prandtl_number(P, T, mix: dict) -> float:
     cp = get_cp(P, T, mix)
-    visc = CP.PropsSI("VISCOSITY", "P", P, "T", T, mix_to_CP_string(mix))
-    k = CP.PropsSI("CONDUCTIVITY", "P", P, "T", T, mix_to_CP_string(mix))
+    visc = get_viscosity_mix(P, T, mix)
+    k = get_thermal_conductivity_mix(P, T, mix)
     return cp * visc / k
 
 def get_stanton_number(P, T, r, u, mix: dict): #acc to Friend and Metzner [2]
@@ -105,3 +150,25 @@ def get_adiabatic_wall_temperature(P, T, u, recovery_factor, mix: dict):
 def get_heat_of_vaporization(P, substance):
     return CP.PropsSI("H", "P", P, "Q", 1, substance) - CP.PropsSI("H", "P", P, "Q", 0, substance)
     
+def prune_cc_products(cea_dict, cutoff=0.01, exclude=["*NO", "*O", "*OH", "*H"], pos=1):
+    cp_dict = {}
+    total = 0
+    for key in cea_dict:
+        if (cea_dict[key][pos] > cutoff) and not (key in exclude):
+            cp_dict[key.strip('*')] = cea_dict[key][pos]
+            total += cea_dict[key][pos]
+    for key in cp_dict:
+        cp_dict[key] = cp_dict[key]/total
+    return cp_dict
+
+def get_cone_area(r1, r2, h):
+    return (r1 + r2) * math.pi * ((r1-r2)**2 + h**2)**0.5
+
+def get_mass_frac(mix: dict):
+    M = 0
+    for i in mix:
+        M += mix[i] * CP.PropsSI("M", i)
+    mdict = {}
+    for j in mix:
+        mdict[j] = mix[j] * CP.PropsSI("M", j) / M
+    return mdict

@@ -387,8 +387,8 @@ class Nozzle:
         '''
         if not(type(rf_cf) == float or type(rf_cf) == int):
             raise TypeError("Chamber-nozzle fillet ratio must be a Number.")
-        if rf_cf <= 0:
-            raise ValueError("Chamber-nozzle fillet ratio must be greater than 0.")
+        if rf_cf < 0:
+            raise ValueError("Chamber-nozzle fillet ratio must be positive.")
             
         self.rf_cf = rf_cf
         

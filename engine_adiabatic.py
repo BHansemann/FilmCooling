@@ -91,5 +91,5 @@ if __name__ == "__main__":
     print(delta)
     print(step)
     
-    print(sample_engine[rho,-1])
+    print(str(sample_engine[u,-1]/9.81))
     
