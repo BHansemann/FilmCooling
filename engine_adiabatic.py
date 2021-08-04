@@ -17,7 +17,7 @@ from tqdm import tqdm
 psi = lambda x : x / const.psi
 Pa = lambda x : x * const.psi
 
-def prune_cc_products(cea_dict, cutoff=0.01, exclude=["*NO", "*O", "*OH", "*H"], pos=1):
+def prune_cc_products(cea_dict, cutoff=0.01, exclude=["*NO", "*O", "*OH", "*H", "C(gr)"], pos=1):
     cp_dict = {}
     total = 0
     for key in cea_dict:
