@@ -41,12 +41,23 @@ def newton_solver(funcs, jacobi, initguess, cutoff=0.01):
         i += 1
         a = jacobi(xn)
         b = funcs(xn)*-1
-        z = np.linalg.solve(a, b)
-        if np.all(abs(z)>cutoff):
+        try:
+            z = np.linalg.solve(a, b)
+        
+        except np.linalg.LinAlgError as err:
+            #print(err)
+            #print(jacobi(xn))
+            print(xn)
+            print(funcmatrix(xn))
+            print("")
+        
+        if np.any(abs(z)>cutoff):
             xn += z
-            print(z)
+            #print(z)
         else:
             print(i)
+            print(abs(z))
+            print(abs(z)<cutoff)
             return xn
 
 #initialize
@@ -111,8 +122,8 @@ while True:
             def funcmatrix(vec):
                 P_2, T_2, u_2 = tuple(vec)
                 return np.array([P_2 * u_2 * area(s1[r]) / (T_2 * Rs) - s1[rho] * s1[u] * area(s1[r]) - s1[Q] / h_ev,
-                                 P_2 * u_2 * area(s1[r]) * s2[h] / (T_2 * Rs) - s1[rho] * s1[u] * area(s1[r]) + s1[h] - mdotf * h_f + s1[Q], #Massenstrom vom film cooling berechnen
-                                 P_2 * u_2**2 * area(s1[r]) / (T_2 * Rs) + P_2 * area(s1[r]) - s1[rho] * s1[u]**2 * area(s1[r]) - s1[P] * area(s1[r]) + Fr]) #check this
+                                 P_2 * u_2 * area(s1[r]) * s2[h] / (T_2 * Rs) - s1[rho] * s1[u] * area(s1[r]) * s1[h] - mdotf * h_f + s1[Q],
+                                 P_2 * u_2**2 * area(s1[r]) / (T_2 * Rs) + P_2 * area(s1[r]) - s1[rho] * s1[u]**2 * area(s1[r]) - s1[P] * area(s1[r]) + Fr])
             
             def jacobimatrix(vec):
                 P_2, T_2, u_2 = tuple(vec)
@@ -127,12 +138,12 @@ while True:
                                  alpha * P_2 * s2[h] / u_2
                                  ],
                                 
-                                [alpha * u_2 + area(s2[r]), #check this pls
-                                 alpha * -1 * P_2 * u_2,
+                                [alpha * u_2 + area(s2[r]),
+                                 alpha * -1 * P_2 * u_2 / T_2,
                                  alpha * 2 * P_2
                                 ]])
             
-            P_2, T_2, u_2 = newton_solver(funcmatrix, jacobimatrix, (s1[P], s1[T], s1[u]))
+            P_2, T_2, u_2 = newton_solver(funcmatrix, jacobimatrix, (s1[P]*1.1, s1[T]*1.1, s1[u]*1.1))
             
             print(P_2, T_2, u_2)
             

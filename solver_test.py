@@ -2,33 +2,60 @@
 """
 Created on Fri Jan 22 16:42:05 2021
 
-@auth"or: Berni
+@author: Berni
 """
-
-"""import sympy
-import math
 import numpy as np
+from math import sin
+from math import cos
 
-#P1, P2, T1, T2, Rs, r1, r2, u1, u2, Qc, hcc, Fr, h1, h2 = sympy.symbols("P1 P2 T1 T2 Rs r1 r2 u1 u2 Qc hcc Fr h1 h2")
+def funcmatrix(vec):
+    x, y = tuple(vec)
+    return np.array([x**3 + sin(y) + 1, x*y + 1])
 
-#f = (P1 * r1**2 * math.pi * u1) / (Rs * T1) + Qc / hcc - (P2 * r2**2 * math.pi * u2) / (Rs * T2)
-#g = (P1 * r1**2 * math.pi * u1 * h1) / (Rs * T1) + Qc * hcc / hcc - Qc - (P2 * r2**2 * math.pi * u2 * h2) / (Rs * T2)
-#h = P1/(Rs * T1) * u1**2 * r1**2 * math.pi + P1 * r1**2 * math.pi - Fr - P2/(Rs*T2) * u2**2 * r2**2 * math.pi - P2 * r2**2 * math.pi
+def jacobimatrix(vec):
+    x, y = tuple(vec)
+    return np.array([[3*x**2, cos(y)], [y, x]])
 
-def funcmatrix(P_2, T_2, u_2):
-    return np.array([P_2 * u_2 * A_2, , ])
+def newton_solver(funcs, jacobi, initguess, cutoff=0.001):
+    xn = np.array(initguess)
+    i=0
+    while(True):
+        i += 1
+        a = jacobi(xn)
+        b = funcs(xn)*-1
+        try:
+            z = np.linalg.solve(a, b)
+        
+        except np.linalg.LinAlgError as err:
+            #print(err)
+            print(jacobi(xn))
+            print(funcmatrix(xn))
+            print("")
+        
+        if np.any(abs(z)>cutoff):
+            xn += z
+            print(z)
+        else:
+            print(i)
+            print(abs(z))
+            print(abs(z)<cutoff)
+            return xn
+        
+test = newton_solver(funcmatrix, jacobimatrix, (0.,4.))
 
-def jacobimatrix():
-    return np.array([[], [], []], 
-                    [[], [], []], 
-                    [[], [], []])"""
+co=1e100
+for P_test in np.arange(1e6*0.99, 1e6*1.01, 100):
+    print(P_test)
+    for T_test in np.arange(2300*0.99, 2300*1.01, 100):
+        for u_test in np.arange(200*0.99, 200*1.01, 100):
+            res = funcmatrix((P_test, T_test, u_test))
+            if sum(abs(res)) < co:
+                co = sum(abs(res))
+                absres = res
+                
+print(absres)
+print(co)
 
-import thermodynamic_toolbox as thermo
 
-mix = {'CO': 0.22927143797319066,
- 'CO2': 0.03355950272079416,
- 'H2': 0.21465190951430582,
- 'H2O': 0.17864231755549284,
- 'N2': 0.3438748322362165}
 
-thermo.get_viscosity_mix(1000000, 2000, mix)
+
