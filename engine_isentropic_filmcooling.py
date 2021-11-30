@@ -34,7 +34,7 @@ r_cc = 0.02
 Fr=0 #ayayay
 rec_fac = 1 #recovery Factor
 
-def newton_solver(funcs, jacobi, initguess, cutoff=0.01):
+def newton_solver(funcs, jacobi, initguess, cutoff=0.01): #Temporary
     xn = np.array(initguess)
     i=0
     while(True):

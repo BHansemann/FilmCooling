@@ -9,6 +9,7 @@ import math
 import scipy.constants as const
 from scipy.optimize import fsolve
 import CoolProp.CoolProp as CP
+import numpy as np
 
 def isentrop_press_temp(kappa, press, temp1, temp2) -> float:
     return press * (temp2 / temp1)**(kappa / (kappa - 1))
@@ -70,10 +71,10 @@ def get_cp(P, T, mix: dict):
     return mass_mixer(mix, P, "P", T, "T", "CP0MASS")
 
 def get_friction_factor(Re) -> float: #acc to McKeon et al. [1]
-    if Re < 300E3:
-        pass #error handling
-    if Re >= 18E6:
-        pass #error handling
+    #if Re < 300E3:
+        #pass #error handling
+    #if Re >= 18E6:
+        #pass #error handling
     def f(x):
         z = 1.93 * math.log(Re * x**0.5, 10) - 0.537 - x**-0.5
         return z
@@ -172,3 +173,24 @@ def get_mass_frac(mix: dict):
     for j in mix:
         mdict[j] = mix[j] * CP.PropsSI("M", j) / M
     return mdict
+
+def newton_solver(funcs, jacobi, initguess, cutoff=0.01):
+    xn = np.array(initguess)
+    i=0
+    while(True):
+        i += 1
+        a = jacobi(xn)
+        b = funcs(xn)*-1
+        try:
+            z = np.linalg.solve(a, b)
+        except np.linalg.LinAlgError:
+            z = np.linalg.lstsq(a, b, rcond=None)[0]
+        
+        if np.any(abs(z) > cutoff):
+            xn += z
+            #print(z)
+        else:
+            #print(i)
+            #print(abs(z))
+            #print(abs(z)<cutoff)
+            return xn

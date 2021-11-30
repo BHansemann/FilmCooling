@@ -28,7 +28,7 @@ def prune_cc_products(cea_dict, cutoff=0.01, exclude=["*NO", "*O", "*OH", "*H", 
         cp_dict[key] = cp_dict[key]/total
     return cp_dict
 
-def engine_adiabatic(P_cc, P_e, n_ps, T_cc, F_th, eta_nz, ox, fuel, ofr, r_cc):
+def engine_adiabatic(P_cc, P_e, n_ps, T_cc, F_th, eta_nz, ox, fuel, ofr, r_cc, verbose=True):
     step, P, T, rho, kappa, h, u, c, M, r = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     cea = CEA_Obj(fuelName=fuel, oxName=ox)
     mix_cc = prune_cc_products(cea.get_SpeciesMoleFractions(Pc=psi(P_cc), MR=ofr)[1])
@@ -45,7 +45,7 @@ def engine_adiabatic(P_cc, P_e, n_ps, T_cc, F_th, eta_nz, ox, fuel, ofr, r_cc):
     eng[c,0] = thermo.get_speed_of_sound(eng[P,0], eng[T,0], mix_cc)
     eng[M,0] = eng[u,0] / eng[c,0]
     eng[r,0] = r_cc
-    for i in tqdm(eng[step,:]):
+    for i in tqdm(eng[step,:], disable=not verbose):
         i = int(i)
         if(i != 0):
             eng[T,i] = thermo.isentrop_temp_press(eng[kappa,i-1], eng[T,i-1], eng[P,i-1], eng[P,i])
