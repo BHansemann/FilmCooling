@@ -87,6 +87,29 @@ def get_reynolds_number(P, T, r, u, mix: dict) -> float:
     return rho * u * 2*r / visc
 
 def get_viscosity(P, T, fluid):
+    #Nach VDI, falls CoolProp nicht will
+    dipole_moments = {"CO": 0.12,
+                      "CO2": 0,
+                      "H2O": 1.8,
+                      "H2": 0,
+                      "N2": 0} #[debye]
+    try:
+        return CP.PropsSI("VISCOSITY", "T", T, "P", P, fluid)
+    except Exception:
+        T_c = CP.PropsSI("TCRIT", fluid)
+        P_c = CP.PropsSI("PCRIT", fluid)
+        T_r = T / T_c
+        mu_r = 52.46 * dipole_moments[fluid]**2 * P_c * 1e-5 * T_c**-2
+        F=1
+        if mu_r <= 0.022:
+            F = 1
+        elif mu_r <= 0.075:
+            F = 1 + 30.55 * (0.292 - CP.PropsSI("Z", fluid))**1.72
+        else:
+            F = 1 + 30.55 * (0.292 - CP.PropsSI("Z", fluid))**1.72 * abs(0.96 + 0.1 * (T_r-0.7))
+        zeta = 0.176 * T_c**(1/6) * CP.PropsSI("M", fluid)**-0.5 * P_c**-(2/3) * 1e-5
+        return 1e-7 * F * (0.807 * T_r**0.618 - 0.357 * math.exp(-0.449*T_r) + 0.34 * math.exp(-4.058 * T_r) + 0.018) / zeta
+    
     VDI_params = {"CO": (0.01384*10**-5, 0.74306*10**-7, -0.62996*10**-10, 0.03948*10**-12, -0.01032*10**-15),
                   "CO2": (-0.18024*10**-5, 0.65989*10**-7, -0.37108*10**-10, 0.01586*10**-12, -0.00300*10**-15)} #VDI_Waermeatlas S.381, S.450
     if fluid in VDI_params:
@@ -96,15 +119,15 @@ def get_viscosity(P, T, fluid):
         return CP.PropsSI("VISCOSITY", "T", T, "P", P, fluid)
 
 def get_viscosity_mix(P, T, mix: dict):
-    mfmix = get_mass_frac(mix)
+    #mfmix = get_mass_frac(mix)
     visc = 0
     for i in mix:
         denominator = 0
         for j in mix:
             F = ((1 + (get_viscosity(P, T, i) / get_viscosity(P, T, j))**0.5 * (CP.PropsSI("M", j) / CP.PropsSI("M", i))**0.25)**2
                  / (8 * (1 + CP.PropsSI("M", i) / CP.PropsSI("M", j)))**0.5)
-            denominator += F * mfmix[j]
-        visc += mfmix[i] * get_viscosity(P, T, i) / denominator
+            denominator += F * mix[j]
+        visc += mix[i] * get_viscosity(P, T, i) / denominator
     return visc
 
 def get_thermal_conductivity(P, T, fluid):
