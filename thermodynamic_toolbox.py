@@ -87,6 +87,11 @@ def get_reynolds_number(P, T, r, u, mix: dict) -> float:
     return rho * u * 2*r / visc
 
 def get_viscosity(P, T, fluid):
+    if fluid == "CO":
+        return 7.3478e-4
+    else:
+        return CP.PropsSI("VISCOSITY", "T", T, "P", P, fluid)#######################################
+    
     #Nach VDI, falls CoolProp nicht will
     dipole_moments = {"CO": 0.12,
                       "CO2": 0,

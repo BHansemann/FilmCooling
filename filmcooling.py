@@ -11,6 +11,7 @@ import scipy.constants as const
 from scipy.optimize import fsolve
 import math
 from CoolProp.CoolProp import PropsSI
+from gas_emittance import gas_emittance
 
 #Umrechner
 area = lambda r: r**2 * math.pi
@@ -42,6 +43,7 @@ Pr_g = mu_g * cp_g / thermo.get_thermal_conductivity_mix(P_cc, T_cc, mix_cc)
 cp_l = PropsSI("C", "P", 10e5, "Q", 0, "Ethanol")
 h_v = thermo.get_heat_of_vaporization(P_cc, "Ethanol")
 T_csat = PropsSI('T', 'P', P_cc, 'Q', 0, 'Ethanol')
+h_star = h_v + cp_l * (T_cc - T_csat)
 
 G_mean = rho_g * u_g * (u_g-u_c) / u_g
 Re_g = G_mean * 2 * r_cc / mu_g
@@ -53,8 +55,21 @@ f = lamb/4
 St_0 = (f/2) / (1.2 + 11.8 * math.sqrt(f/2) * (Pr_g - 1) * Pr_g**(-1/3))
 e_t = 0.15
 K_t = 1 + 4*e_t
+h_0 = G_mean * cp_g * St_0 * K_t
 
+eta_g = gas_emittance(r_cc, T_cc, mix_cc["H2O"], mix_cc["CO2"], P_cc)
+q_dot_rad = eta_g * const.Boltzmann * (T_cc**4 - T_csat**4)
 
 R = (PropsSI("M", thermo.mix_to_CP_string(mix_cc))/PropsSI("M", "Ethanol"))**0.6
 def g(x):
-    return (math.log(1+R*x[1]/x[0])/(x[1] * R / x[0]) - x[0] / St_0, )#########################
+    (St, F) = x
+    eqn_1 = math.log(1+R*F/St)/(F * R / St) - St / St_0
+    eqn_2 = ((T_cc - T_csat)+q_dot_rad/h_0) * cp_g/h_star - F/St
+    return [eqn_1, eqn_2]
+res = fsolve(g, (0.002, 0.001))
+St = res[0]
+
+q_dot_conv = St * u_g * rho_g * cp_g * (T_cc - T_csat)
+
+m_dot_c = (q_dot_conv + q_dot_rad) * 2 * r_cc * math.pi * l_c / h_star
+print(m_dot_c)
