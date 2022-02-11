@@ -55,7 +55,3 @@ for P_test in np.arange(1e6*0.99, 1e6*1.01, 100):
                 
 print(absres)
 print(co)
-
-
-
-
