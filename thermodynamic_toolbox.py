@@ -88,7 +88,7 @@ def get_reynolds_number(P, T, r, u, mix: dict) -> float:
 
 def get_viscosity(P, T, fluid):
     if fluid == "CO":
-        return 7.3478e-4
+        return 7.3478e-4 * 0.1 #bei 2600K
     else:
         return CP.PropsSI("VISCOSITY", "T", T, "P", P, fluid)#######################################
     
@@ -136,10 +136,8 @@ def get_viscosity_mix(P, T, mix: dict):
     return visc
 
 def get_thermal_conductivity(P, T, fluid):
-    VDI_params = {"CO": (-0.783*10**-3, 0.10317*10**-3, -0.067590*10**-6, 0.039450*10**-9, -0.009470*10**-12)}
-    if fluid in VDI_params:
-        a, b, c, d, e = VDI_params[fluid]
-        return a + b*T + c*T**2 + d*T**3 + e*T**4
+    if fluid == "CO":
+        return 1.8386e-4 * 418.4 #bei 2600K
     else:
         return CP.PropsSI("CONDUCTIVITY", "P", P, "T", T, fluid)
 
