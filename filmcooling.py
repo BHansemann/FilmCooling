@@ -61,7 +61,7 @@ f = lamb/4
 St_0 = (f/2) / (1.2 + 11.8 * math.sqrt(f/2) * (Pr_g - 1) * Pr_g**(-1/3))
 
 #Korrektur fuer RMS-Turbulenz
-e_t = 0.15
+e_t = 0.1
 K_t = 1 + 4*e_t
 h_0 = G_mean * cp_g * St_0 * K_t
 
@@ -84,7 +84,7 @@ St = res[0]
 r=Pr_g**(1/3)
 T_aw=T_cc*(1+r*(thermo.get_kappa(P_cc, T_cc, mix_cc)-1)/2*(u_g/thermo.get_speed_of_sound(P_cc, T_cc, mix_cc)))
 
-q_dot_conv = St * u_g * rho_g * cp_g * (T_aw - T_csat)
+q_dot_conv = St * u_g * rho_g * cp_g * (T_aw - T_csat)* K_t
 
 m_dot_c = (q_dot_conv + q_dot_rad) * 2 * r_cc * math.pi * l_c / h_star
 print(f"Benoetigter Massenstrom [kg/s]: {m_dot_c}")

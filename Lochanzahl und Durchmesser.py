@@ -22,7 +22,8 @@ v_1 = m_1/(rho_1*A_1) #m/s Geschwindigkeit des Fuels
 #-----------Berechnung von A3 (Querschnittflaeche der OEffnung fuer cooling)
 #Flaechenverhaeltnis
 
-m_3 = 0.002695454626341806 #kg/s benoetigter Massenstrom fuer filmcooling
+m_3 = 0.0037736364768785288 #kg/s benoetigter Massenstrom fuer filmcooling
+
 
 d_2 = 0.003 #mm Durchmesser fuer Fuel+Oxidizer Mischung
 m_2 = m_1-m_3 #kg/s Massenstrom der Mischung)
@@ -36,7 +37,7 @@ A_3 = A_2*c #m^2
 v_3 = m_3/(rho_1*A_3)
 
 #-------- Lochanzahl + Durchmesser fuer A3
-i = 4 #Lochanzahl
+i = 6 #Lochanzahl
 d_3 = math.sqrt(A_3/(math.pi*i))*2 
 
 
